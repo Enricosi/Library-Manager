@@ -1,4 +1,5 @@
 from commands_book import *
+from commands_copy import *
 
 def dispatch(args, conn):
     """Route parsed CLI arguments to the corresponding command handler.
@@ -18,6 +19,8 @@ def dispatch(args, conn):
     """
     handlers = {
         'add_book':cmd_add_book,
+        'add_copy':cmd_add_copy,
+        'remove_book':cmd_remove_book,
     }
 
     cmd = args.command
