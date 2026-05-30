@@ -15,7 +15,7 @@ def parse_args():
     remove_book_parser = subparsers.add_parser('remove_book', help="Elimina un libro de la base de datos siempre que no tenga copias con estatus loan.")
     remove_book_parser.add_argument('id', type=int, help="ID del libro que sera eliminado.")
     
-    list_book_parser = subparsers.add_parser('list_books', help="Muestra todos los libros segun los filtros aplicados.")
+    list_book_parser = subparsers.add_parser('list_book', help="Muestra todos los libros segun los filtros aplicados.")
     list_book_parser.add_argument('-t', '--title', help="Muesta si existe el libro con ese titulo.")
     list_book_parser.add_argument('-g', '--genre', help="Muestra los libros del genero especificado.")
     list_book_parser.add_argument('-a', '--author', help="Muestra los libros del autor especificado")
@@ -24,5 +24,7 @@ def parse_args():
     add_copy_parser.add_argument('book', help="ID del libro al que se le quiere crear una copia.")
     add_copy_parser.add_argument('-l', '--location', help="Indica la shelf location de la copia en la tienda.")
 
+    remove_coy_parser = subparsers.add_parser('remove_copy', help="Elimina una copia de un libro debe tener un status distinto a loan.")
+    remove_coy_parser.add_argument('id', help="ID de la copia que se va a eliminar.")
 
     return parser.parse_args()

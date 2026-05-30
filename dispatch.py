@@ -19,8 +19,10 @@ def dispatch(args, conn):
     """
     handlers = {
         'add_book':cmd_add_book,
-        'add_copy':cmd_add_copy,
         'remove_book':cmd_remove_book,
+        'list_book':cmd_list_book,
+        'add_copy':cmd_add_copy,
+        'remove_copy':cmd_remove_copy,
     }
 
     cmd = args.command
