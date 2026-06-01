@@ -23,6 +23,8 @@ def dispatch(args, conn):
         'list_book':cmd_list_book,
         'add_copy':cmd_add_copy,
         'remove_copy':cmd_remove_copy,
+        'change_copy_status':cmd_change_copy_status,
+        'list_copies':cmd_list_copies
     }
 
     cmd = args.command

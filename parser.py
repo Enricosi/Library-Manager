@@ -27,4 +27,11 @@ def parse_args():
     remove_coy_parser = subparsers.add_parser('remove_copy', help="Elimina una copia de un libro debe tener un status distinto a loan.")
     remove_coy_parser.add_argument('id', help="ID de la copia que se va a eliminar.")
 
+    change_copy_status_parser = subparsers.add_parser('change_copy_status', help="Cambia el status de una copy pero no puede cambiarlo a loaned.")
+    change_copy_status_parser.add_argument('copy', help="ID de la copy a modificar")
+    change_copy_status_parser.add_argument('new_status', choices=['damaged', 'lost', 'available'], help="Posibles ststus que puede tener una copy si se cambia desde este comando.Reglas: available → damaged, lost | loaned  → damaged, lost  (cierra el loan automáticamente) | damaged → available, lost | lost → available |")
+    
+    list_copies_parser = subparsers.add_parser('list_copies', help="Muestra las copias existentes segun los filtros aplicados")
+    list_copies_parser.add_argument('-t', '--title', help="Filtra las copias por titulo.")
+    
     return parser.parse_args()
