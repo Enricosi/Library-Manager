@@ -108,6 +108,7 @@ def cmd_list_copies(args, conn):
     with conn.cursor() as cursor:
 
         title = args.title if args.title else None
+        status = args.status if args.status else None
 
         sql = "SELECT c.copy_id, b.title, c.status, c.shelf_location, c.created_at FROM copy c INNER JOIN book b ON c.book_id = b.book_id"
 
@@ -115,8 +116,12 @@ def cmd_list_copies(args, conn):
         values = []
 
         if title:
-            conditions.append('title LIKE %s')
+            conditions.append('b.title LIKE %s')
             values.append(f"%{title}%")
+
+        if status:
+            conditions.append('c.status = %s')
+            values.append(status)
 
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)

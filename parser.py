@@ -33,5 +33,6 @@ def parse_args():
     
     list_copies_parser = subparsers.add_parser('list_copies', help="Muestra las copias existentes segun los filtros aplicados")
     list_copies_parser.add_argument('-t', '--title', help="Filtra las copias por titulo.")
+    list_copies_parser.add_argument('-s', '--status', choices=['avilable', 'loaned', 'damaged', 'lost'], help="Filtra las copias por estado.")
     
     return parser.parse_args()
