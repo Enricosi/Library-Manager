@@ -35,4 +35,13 @@ def parse_args():
     list_copies_parser.add_argument('-t', '--title', help="Filtra las copias por titulo.")
     list_copies_parser.add_argument('-s', '--status', choices=['avilable', 'loaned', 'damaged', 'lost'], help="Filtra las copias por estado.")
     
+    add_user_parser = subparsers.add_parser('add_user', help="Agrega un nuevo usuario a la base de datos.")
+    add_user_parser.add_argument('username', help="Username del user.")
+    add_user_parser.add_argument('first_name', help="Primer nombre del user.")
+    add_user_parser.add_argument('last_name', help="Apellido del user.")
+
+    remove_user_parser = subparsers.add_parser('remove_user', help="Elimina un usuario de la base de datos si no tiene ningun loan activo.")
+    remove_user_parser.add_argument('username', help="Username del user que se quiere eliminar.")
+
+
     return parser.parse_args()

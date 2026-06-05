@@ -1,4 +1,3 @@
-import pymysql
 from exceptions import LibraryManagerError
 import datetime
 
