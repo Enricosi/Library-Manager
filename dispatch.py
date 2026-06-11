@@ -28,6 +28,8 @@ def dispatch(args, conn):
         'list_copies':cmd_list_copies,
         'add_user':cmd_add_user,
         'remove_user':cmd_remove_user,
+        'cahange_user_activity':cmd_change_user_activity,
+        'list_users':cmd_list_users,
     }
 
     cmd = args.command

@@ -43,5 +43,13 @@ def parse_args():
     remove_user_parser = subparsers.add_parser('remove_user', help="Elimina un usuario de la base de datos si no tiene ningun loan activo.")
     remove_user_parser.add_argument('username', help="Username del user que se quiere eliminar.")
 
+    change_user_activity_parser = subparsers.add_parser('change_user_status')
+    change_user_activity_parser.add_argument('user', help="Cambia el estado de un user en activo(1) e inactivo(2).")
+
+    list_users_parser = subparsers.add_parser('list_users', help="Muestra los usuarios existentes segun los filtros aplicados.")
+    list_users_parser.add_argument('-a', '--active', help="Filtra por usuarios activos.")
+    list_users_parser.add_argument('-i', '--inactive', help="Filtra por usuarios inactivos.")
+    list_users_parser.add_argument('-l', '--have_loans', help="Filtra por usuarios que tienen prestamos activos.")
+
 
     return parser.parse_args()
