@@ -1,6 +1,7 @@
 from commands_book import *
 from commands_copy import *
 from commands_users import *
+from commands_loan import *
 
 def dispatch(args, conn):
     """Route parsed CLI arguments to the corresponding command handler.
@@ -28,8 +29,11 @@ def dispatch(args, conn):
         'list_copies':cmd_list_copies,
         'add_user':cmd_add_user,
         'remove_user':cmd_remove_user,
-        'cahange_user_activity':cmd_change_user_activity,
+        'change_user_activity':cmd_change_user_activity,
         'list_users':cmd_list_users,
+        'loan_copy':cmd_loan_copy,
+        'return_copy':cmd_return_copy,
+        'list_loans':cmd_list_loans
     }
 
     cmd = args.command

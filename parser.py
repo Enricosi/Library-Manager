@@ -1,5 +1,13 @@
 import argparse
 
+def valid_days(days):
+    value = int(days)
+
+    if value < 1 or value > 60:
+        raise argparse.ArgumentTypeError("--days debe estar entre 1 y 60.")
+    
+    return value
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Library Manager CLI")
 
@@ -21,19 +29,19 @@ def parse_args():
     list_book_parser.add_argument('-a', '--author', help="Muestra los libros del autor especificado")
 
     add_copy_parser = subparsers.add_parser('add_copy', help="Agrega una copia fisica de un libro existente en la base de datos.")
-    add_copy_parser.add_argument('book', help="ID del libro al que se le quiere crear una copia.")
+    add_copy_parser.add_argument('book', type =int, help="ID del libro al que se le quiere crear una copia.")
     add_copy_parser.add_argument('-l', '--location', help="Indica la shelf location de la copia en la tienda.")
 
     remove_coy_parser = subparsers.add_parser('remove_copy', help="Elimina una copia de un libro debe tener un status distinto a loan.")
-    remove_coy_parser.add_argument('id', help="ID de la copia que se va a eliminar.")
+    remove_coy_parser.add_argument('id', type=int, help="ID de la copia que se va a eliminar.")
 
     change_copy_status_parser = subparsers.add_parser('change_copy_status', help="Cambia el status de una copy pero no puede cambiarlo a loaned.")
-    change_copy_status_parser.add_argument('copy', help="ID de la copy a modificar")
+    change_copy_status_parser.add_argument('copy', type=int, help="ID de la copy a modificar")
     change_copy_status_parser.add_argument('new_status', choices=['damaged', 'lost', 'available'], help="Posibles ststus que puede tener una copy si se cambia desde este comando.Reglas: available → damaged, lost | loaned  → damaged, lost  (cierra el loan automáticamente) | damaged → available, lost | lost → available |")
     
     list_copies_parser = subparsers.add_parser('list_copies', help="Muestra las copias existentes segun los filtros aplicados")
     list_copies_parser.add_argument('-t', '--title', help="Filtra las copias por titulo.")
-    list_copies_parser.add_argument('-s', '--status', choices=['avilable', 'loaned', 'damaged', 'lost'], help="Filtra las copias por estado.")
+    list_copies_parser.add_argument('-s', '--status', choices=['available', 'loaned', 'damaged', 'lost'], help="Filtra las copias por estado.")
     
     add_user_parser = subparsers.add_parser('add_user', help="Agrega un nuevo usuario a la base de datos.")
     add_user_parser.add_argument('username', help="Username del user.")
@@ -43,13 +51,24 @@ def parse_args():
     remove_user_parser = subparsers.add_parser('remove_user', help="Elimina un usuario de la base de datos si no tiene ningun loan activo.")
     remove_user_parser.add_argument('username', help="Username del user que se quiere eliminar.")
 
-    change_user_activity_parser = subparsers.add_parser('change_user_status')
+    change_user_activity_parser = subparsers.add_parser('change_user_activity')
     change_user_activity_parser.add_argument('user', help="Cambia el estado de un user en activo(1) e inactivo(2).")
 
     list_users_parser = subparsers.add_parser('list_users', help="Muestra los usuarios existentes segun los filtros aplicados.")
-    list_users_parser.add_argument('-a', '--active', help="Filtra por usuarios activos.")
-    list_users_parser.add_argument('-i', '--inactive', help="Filtra por usuarios inactivos.")
-    list_users_parser.add_argument('-l', '--have_loans', help="Filtra por usuarios que tienen prestamos activos.")
+    list_users_parser.add_argument('-a', '--active', action='store_true', help="Filtra por usuarios activos.")
+    list_users_parser.add_argument('-i', '--inactive', action='store_true', help="Filtra por usuarios inactivos.")
+    list_users_parser.add_argument('-l', '--have_loans', action='store_true', help="Filtra por usuarios que tienen prestamos activos.")
 
+    loan_copy_parser = subparsers.add_parser('loan_copy', help="Abre un loan para la copia especificada al usuario especificado por la cantidad de dias especificados.")
+    loan_copy_parser.add_argument('id', type=int, help="ID de la copy a prestar.")
+    loan_copy_parser.add_argument('username', help="Username del usuario que hace el prestamo.")
+    loan_copy_parser.add_argument('days', type=valid_days, help="Cantidad de dias que dura el prestamo.")
+    
+    return_copy_parser = subparsers.add_parser('return_copy', help="Cierra un prestamo activo.")
+    return_copy_parser.add_argument('copy', type=int, help="ID de la copy que sera devuelta.")
 
+    list_loans_parser = subparsers.add_parser('list_loans', help="Muestra los laons segun los filtros aplicados.")
+    list_loans_parser.add_argument('-a', '--active', action='store_true', help="Muestra los loans activos.")
+    list_loans_parser.add_argument('-t', '--historical', action='store_true', help="Muestra los prestamos ianctivos (historicos)")
+    
     return parser.parse_args()
