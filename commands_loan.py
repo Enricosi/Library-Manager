@@ -87,18 +87,22 @@ def cmd_list_loans(args, conn):
         active = args.active if args.active else None
         historical = args.historical if args.historical else None
 
-        sql = "SELECT loan_id, copy_id, user_id, loan_date, due_date, return_date FROM loan"
+        sql = "SELECT l.loan_id, b.title, u.username, l.loan_date, l.due_date, l.return_date " \
+            "FROM loan l " \
+            "INNER JOIN copy c ON l.copy_id = c.copy_id " \
+            "INNER JOIN book b ON c.book_id = b.book_id " \
+            "INNER JOIN library_user u ON l.user_id = u.user_id"
 
         conditions = []
 
         if active and historical:
             raise LibraryManagerError("No puedes aplicar --active y --historical al mismo tiempo.")
-        
+
         if active:
-            conditions.append("return_date IS NULL")
-        
+            conditions.append("l.return_date IS NULL")
+
         if historical:
-            conditions.append("return_date IS NOT NULL")
+            conditions.append("l.return_date IS NOT NULL")
 
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)
@@ -109,6 +113,6 @@ def cmd_list_loans(args, conn):
 
         if lista:
             for l in lista:
-                print(f"Loan ID: {l[0]} | Copy ID: {l[1]} | User ID: {l[2]} | Loan Date: {l[3]} | Due Date: {l[4]} | Return Date: {l[5] or '-'}")
+                print(f"Loan ID: {l[0]} | Title: {l[1]} | Username: {l[2]} | Loan Date: {l[3]} | Due Date: {l[4]} | Return Date: {l[5] or '-'}")
         else:
             raise LibraryManagerError("No hay loans que mostrar.")
