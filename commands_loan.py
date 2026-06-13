@@ -3,6 +3,13 @@ import datetime
 import pymysql
 
 def cmd_loan_copy(args, conn):
+    """Create a loan for an available copy to an active user, due in args.days days.
+
+    Marks the copy as 'loaned'.
+
+    Raises LibraryManagerError if the copy does not exist or is not 'available',
+    or if the user does not exist or is inactive.
+    """
     with conn.cursor() as cursor:
 
         date = datetime.datetime.now()
@@ -51,6 +58,10 @@ def cmd_loan_copy(args, conn):
             raise LibraryManagerError(f"La copia con ID: {args.id} no se encuentra disponible")
 
 def cmd_return_copy(args,conn):
+    """Close the active loan for a copy and mark the copy as 'available'.
+
+    Raises LibraryManagerError if the copy does not exist or is not currently 'loaned'.
+    """
     with conn.cursor() as cursor:
 
         date = datetime.datetime.now()
@@ -82,6 +93,13 @@ def cmd_return_copy(args,conn):
             raise LibraryManagerError(f"La copia con ID: {args.copy} no existe en la base de datos.")
 
 def cmd_list_loans(args, conn):
+    """List loans with book title and username, optionally filtered by status.
+
+    --active shows loans without a return_date (still out); --historical shows
+    loans that have been returned. They are mutually exclusive.
+
+    Raises LibraryManagerError if both flags are given, or if no loans match.
+    """
     with conn.cursor() as cursor:
 
         active = args.active if args.active else None

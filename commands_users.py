@@ -3,7 +3,11 @@ from exceptions import LibraryManagerError
 
 
 def cmd_add_user(args, conn):
-    try:    
+    """Insert a new library user.
+
+    Raises LibraryManagerError if the username already exists (unique constraint).
+    """
+    try:
         with conn.cursor() as cursor:
 
             sql = "INSERT INTO library_user (username, first_name, last_name) VALUES (%s, %s, %s)"
@@ -19,6 +23,10 @@ def cmd_add_user(args, conn):
 
 
 def cmd_remove_user(args, conn):
+    """Delete a user by username, only if they have no active (unreturned) loans.
+
+    Raises LibraryManagerError if the user does not exist or has an active loan.
+    """
     with conn.cursor() as cursor:
 
         sql1 = "SELECT user_id FROM library_user WHERE username = %s"
@@ -45,6 +53,14 @@ def cmd_remove_user(args, conn):
             raise LibraryManagerError(f"No existe el usuario {args.username}.")
 
 def cmd_change_user_activity(args,conn):
+    """Toggle a user's is_active flag (active <-> inactive).
+
+    If the user is currently active and has an active loan, deactivation is blocked.
+    Activating an inactive user is always allowed.
+
+    Raises LibraryManagerError if the user does not exist, or if deactivation
+    is blocked by an active loan.
+    """
     with conn.cursor() as cursor:
 
         username = args.user
@@ -85,6 +101,15 @@ def cmd_change_user_activity(args,conn):
             raise LibraryManagerError(f"El usuario: {username} no existe en la base de datos.")
 
 def cmd_list_users(args, conn):
+    """List users, optionally filtered by activity status and/or active loans.
+
+    --active and --inactive are mutually exclusive. When --have_loans is set,
+    only users with at least one unreturned loan are shown, along with their
+    active loan count.
+
+    Raises LibraryManagerError if both --active and --inactive are given,
+    or if no users match the applied filters.
+    """
     with conn.cursor() as cursor:
         active = args.active if args.active else None
         inactive = args.inactive if args.inactive else None

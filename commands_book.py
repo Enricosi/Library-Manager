@@ -3,6 +3,10 @@ from exceptions import LibraryManagerError
 
 
 def cmd_add_book(args, conn):
+    """Insert a new book.
+
+    Raises LibraryManagerError if the ISBN already exists (unique constraint).
+    """
     try:
         with conn.cursor() as cursor:
 
@@ -21,7 +25,10 @@ def cmd_add_book(args, conn):
         raise LibraryManagerError(f"El isbn introducido ya existe.")
     
 def cmd_remove_book(args, conn):
+    """Delete a book by ID, only if it has no copies in the database.
 
+    Raises LibraryManagerError if the book does not exist or still has copies.
+    """
     with conn.cursor() as cursor:
 
         sql1 = "SELECT book_id FROM book WHERE book_id = %s"
@@ -48,6 +55,10 @@ def cmd_remove_book(args, conn):
             raise LibraryManagerError(f"No existe un libro con ID: {args.id}")
 
 def cmd_list_book(args, conn):
+    """List books, optionally filtered by title, genre, and/or author (partial match).
+
+    Filters are combined with AND. Prints a message if no books match.
+    """
     with conn.cursor() as cursor:
 
         title = args.title if args.title else None

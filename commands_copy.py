@@ -3,6 +3,10 @@ import datetime
 
 
 def cmd_add_copy(args, conn):
+        """Insert a new physical copy for an existing book.
+
+        Raises LibraryManagerError if the book ID does not exist.
+        """
         with conn.cursor() as cursor:
 
             book_id = args.book
@@ -28,6 +32,10 @@ def cmd_add_copy(args, conn):
                 raise LibraryManagerError(f"No es posible agregar esta copia porque el libro con ID: {book_id} no se encuentra en la base de datos.")
 
 def cmd_remove_copy(args, conn):
+    """Delete a copy by ID, only if its status is not 'loaned'.
+
+    Raises LibraryManagerError if the copy does not exist or is currently loaned.
+    """
     with conn.cursor() as cursor:
         
         sql1 = "SELECT status FROM copy WHERE copy_id = %s"
@@ -51,6 +59,14 @@ def cmd_remove_copy(args, conn):
             raise LibraryManagerError(f"No hay una copia con ID: {args.id}.")
 
 def cmd_change_copy_status(args, conn):
+    """Change a copy's status according to VALID_TRANSACTIONS.
+
+    If the copy is currently 'loaned', closes its active loan (sets return_date)
+    before applying the new status.
+
+    Raises LibraryManagerError if the copy does not exist, the requested transition
+    is not allowed, or a 'loaned' copy has no matching open loan.
+    """
     with conn.cursor() as cursor:
 
         VALID_TRANSACTIONS = {
@@ -104,6 +120,10 @@ def cmd_change_copy_status(args, conn):
             raise LibraryManagerError(f"La copia con ID: {args.copy} no existe en la base de datos.")
 
 def cmd_list_copies(args, conn):
+    """List copies with their book title, optionally filtered by title and/or status.
+
+    Filters are combined with AND. Prints a message if no copies match.
+    """
     with conn.cursor() as cursor:
 
         title = args.title if args.title else None

@@ -1,14 +1,41 @@
 import argparse
 
 def valid_days(days):
+    """Convert and validate the 'days' argument for loan_copy.
+
+    Raises argparse.ArgumentTypeError if the value is not an integer
+    between 1 and 60.
+    """
     value = int(days)
 
     if value < 1 or value > 60:
         raise argparse.ArgumentTypeError("--days debe estar entre 1 y 60.")
-    
+
     return value
 
 def parse_args():
+    """Parse CLI arguments for the Library Manager.
+
+    Subcommands:
+        add_book            Add a book (title, author, genre). Optional: -y/--year, -n/--isbn.
+        remove_book         Remove a book by ID, only if it has no copies.
+        list_book           List books. Optional filters: -t/--title, -g/--genre, -a/--author.
+        add_copy            Add a physical copy of a book by book ID. Optional: -l/--location.
+        remove_copy         Remove a copy by ID, only if its status is not 'loaned'.
+        change_copy_status  Change a copy's status (damaged | lost | available). Cannot set 'loaned' here;
+                             closes the active loan automatically if the copy was 'loaned'.
+        list_copies         List copies. Optional filters: -t/--title, -s/--status.
+        add_user            Register a user (username, first_name, last_name).
+        remove_user         Remove a user by username, only if they have no active loans.
+        change_user_activity  Toggle a user's is_active flag by username.
+        list_users          List users. Optional flags: -a/--active, -i/--inactive, -l/--have_loans.
+        loan_copy           Loan a copy (by ID) to a user (by username) for 1-60 days.
+        return_copy         Close the active loan for a copy by copy ID.
+        list_loans          List loans. Optional flags: -a/--active, -t/--historical.
+
+    Returns:
+        argparse.Namespace: Parsed arguments with 'command' set to the chosen subcommand.
+    """
     parser = argparse.ArgumentParser(description="Library Manager CLI")
 
     subparsers = parser.add_subparsers(dest='command')
@@ -51,8 +78,8 @@ def parse_args():
     remove_user_parser = subparsers.add_parser('remove_user', help="Elimina un usuario de la base de datos si no tiene ningun loan activo.")
     remove_user_parser.add_argument('username', help="Username del user que se quiere eliminar.")
 
-    change_user_activity_parser = subparsers.add_parser('change_user_activity')
-    change_user_activity_parser.add_argument('user', help="Cambia el estado de un user en activo(1) e inactivo(2).")
+    change_user_activity_parser = subparsers.add_parser('change_user_activity', help="Cambia el estado de actividad de un usuario (activo/inactivo).")
+    change_user_activity_parser.add_argument('user', help="Username del usuario a cambiar de estado.")
 
     list_users_parser = subparsers.add_parser('list_users', help="Muestra los usuarios existentes segun los filtros aplicados.")
     list_users_parser.add_argument('-a', '--active', action='store_true', help="Filtra por usuarios activos.")
