@@ -1,212 +1,122 @@
 # Library Manager CLI
 
-CLI para gestionar libros, copias físicas, usuarios y préstamos de una biblioteca, con persistencia en MySQL.
+[![tests](https://github.com/Enricosi/Library-Manager/actions/workflows/tests.yml/badge.svg)](https://github.com/Enricosi/Library-Manager/actions/workflows/tests.yml)
 
-## Requisitos
+**English** · [Español](README.es.md)
+
+A command-line tool to manage a library's books, physical copies, users and loans, backed by MySQL.
+
+Built with Python, `argparse` and PyMySQL. All queries are parameterized, multi-step writes (like a loan, which inserts the loan and marks the copy as loaned) are committed together, and the rules below are enforced in code and backed by foreign keys and `CHECK` constraints.
+
+## Requirements
 
 - Python 3.8+
-- MySQL
-- Dependencias: `pymysql`, `python-dotenv`
+- MySQL 8.0.13+
+
+## Setup
 
 ```bash
-pip install pymysql python-dotenv
-```
+pip install -r requirements.txt
 
-## Configuración
+mysql -u <user> -p -e "CREATE DATABASE library_manager"
+mysql -u <user> -p library_manager < schema.sql
 
-Copia `.env.example` a `.env` y completa los valores:
-
-```bash
-cp .env.example .env
+cp .env.example .env   # then fill in your own values
 ```
 
 ```env
 DB_HOST=localhost
 DB_USER=your_user
 DB_PASSWORD=your_password
-DB_NAME=your_database
+DB_NAME=library_manager
 ```
 
-## Uso
+## Usage
 
 ```bash
-python library_manager.py <comando> [argumentos]
+python library_manager.py <command> [arguments]
 ```
 
----
+## Commands
 
-## Comandos
+### Books
 
-### Libros
+| Command | What it does |
+|---|---|
+| `add_book TITLE AUTHOR GENRE [-y YEAR] [-n ISBN]` | Add a book (ISBN must be unique) |
+| `remove_book ID` | Remove a book. Only if it has no copies |
+| `list_book [-t TITLE] [-g GENRE] [-a AUTHOR]` | List books, filters use partial matches |
 
-#### `add_book`
-Agrega un libro.
+### Copies
 
-| Argumento | Descripción |
-|-----------|-------------|
-| `title` | Título del libro |
-| `author` | Autor del libro |
-| `genre` | Género del libro |
-| `-y`, `--year` | Año de publicación (opcional) |
-| `-n`, `--isbn` | ISBN (opcional, único) |
+| Command | What it does |
+|---|---|
+| `add_copy BOOK_ID [-l LOCATION]` | Add a physical copy of an existing book |
+| `remove_copy ID` | Remove a copy. Not allowed while it is `loaned` |
+| `change_copy_status ID NEW_STATUS` | Set `damaged`, `lost` or `available` (see transitions below) |
+| `list_copies [-t TITLE] [-s STATUS]` | List copies with their book title |
 
-```bash
-python library_manager.py add_book "1984" "George Orwell" "Distopia" -y 1949 -n 9780451524935
-```
+Allowed status transitions:
 
-#### `remove_book`
-Elimina un libro por ID. Solo si no tiene copias asociadas.
-
-```bash
-python library_manager.py remove_book <id>
-```
-
-#### `list_book`
-Lista libros, opcionalmente filtrados.
-
-| Opción | Descripción |
-|--------|-------------|
-| `-t`, `--title` | Filtra por título (coincidencia parcial) |
-| `-g`, `--genre` | Filtra por género (coincidencia parcial) |
-| `-a`, `--author` | Filtra por autor (coincidencia parcial) |
-
-```bash
-python library_manager.py list_book -g Distopia
-```
-
----
-
-### Copias
-
-#### `add_copy`
-Agrega una copia física de un libro existente.
-
-| Argumento | Descripción |
-|-----------|-------------|
-| `book` | ID del libro |
-| `-l`, `--location` | Ubicación en estantería (opcional) |
-
-```bash
-python library_manager.py add_copy 1 -l "Estante A3"
-```
-
-#### `remove_copy`
-Elimina una copia por ID. Solo si su estado no es `loaned`.
-
-```bash
-python library_manager.py remove_copy <id>
-```
-
-#### `change_copy_status`
-Cambia el estado de una copia. No permite cambiar a `loaned` directamente.
-
-| Argumento | Descripción |
-|-----------|-------------|
-| `copy` | ID de la copia |
-| `new_status` | Nuevo estado: `damaged`, `lost` o `available` |
-
-Reglas de transición:
 - `available` → `damaged`, `lost`
-- `loaned` → `damaged`, `lost` (cierra el préstamo automáticamente)
+- `loaned` → `damaged`, `lost` (closes the active loan automatically)
 - `damaged` → `available`, `lost`
 - `lost` → `available`
 
-```bash
-python library_manager.py change_copy_status 5 damaged
-```
+A copy only becomes `loaned` through `loan_copy`.
 
-#### `list_copies`
-Lista copias con el título del libro asociado.
+### Users
 
-| Opción | Descripción |
-|--------|-------------|
-| `-t`, `--title` | Filtra por título del libro |
-| `-s`, `--status` | Filtra por estado: `available`, `loaned`, `damaged`, `lost` |
+| Command | What it does |
+|---|---|
+| `add_user USERNAME FIRST_NAME LAST_NAME` | Register a user (username must be unique) |
+| `remove_user USERNAME` | Remove a user. Not allowed with active loans |
+| `change_user_activity USERNAME` | Toggle active/inactive. Can't deactivate a user with active loans |
+| `list_users [-a \| -i] [-l]` | List users: active, inactive, or only those with active loans |
 
-```bash
-python library_manager.py list_copies -s available
-```
+### Loans
 
----
-
-### Usuarios
-
-#### `add_user`
-Registra un nuevo usuario.
-
-| Argumento | Descripción |
-|-----------|-------------|
-| `username` | Nombre de usuario (único) |
-| `first_name` | Nombre |
-| `last_name` | Apellido |
+| Command | What it does |
+|---|---|
+| `loan_copy COPY_ID USERNAME DAYS` | Lend an available copy to an active user for 1 to 60 days |
+| `return_copy COPY_ID` | Close the active loan and mark the copy `available` |
+| `list_loans [-a \| -t]` | List loans: active or historical (returned) |
 
 ```bash
+python library_manager.py add_book "1984" "George Orwell" "Dystopia" -y 1949 -n 9780451524935
+python library_manager.py add_copy 1 -l "Shelf A3"
 python library_manager.py add_user jdoe John Doe
-```
-
-#### `remove_user`
-Elimina un usuario por username. Solo si no tiene préstamos activos.
-
-```bash
-python library_manager.py remove_user <username>
-```
-
-#### `change_user_activity`
-Cambia el estado de actividad de un usuario (activo ↔ inactivo). No permite desactivar a un usuario con préstamos activos.
-
-```bash
-python library_manager.py change_user_activity <username>
-```
-
-#### `list_users`
-Lista usuarios, opcionalmente filtrados.
-
-| Opción | Descripción |
-|--------|-------------|
-| `-a`, `--active` | Solo usuarios activos |
-| `-i`, `--inactive` | Solo usuarios inactivos |
-| `-l`, `--have_loans` | Solo usuarios con préstamos activos (muestra la cantidad) |
-
-`--active` e `--inactive` son mutuamente excluyentes.
-
-```bash
-python library_manager.py list_users --have_loans
-```
-
----
-
-### Préstamos
-
-#### `loan_copy`
-Presta una copia disponible a un usuario activo.
-
-| Argumento | Descripción |
-|-----------|-------------|
-| `id` | ID de la copia |
-| `username` | Username del usuario |
-| `days` | Duración del préstamo en días (1-60) |
-
-```bash
-python library_manager.py loan_copy 5 jdoe 14
-```
-
-#### `return_copy`
-Cierra el préstamo activo de una copia y la marca como `available`.
-
-```bash
-python library_manager.py return_copy <copy_id>
-```
-
-#### `list_loans`
-Lista préstamos con el título del libro y el username del usuario.
-
-| Opción | Descripción |
-|--------|-------------|
-| `-a`, `--active` | Solo préstamos activos (sin devolver) |
-| `-t`, `--historical` | Solo préstamos ya devueltos |
-
-`--active` y `--historical` son mutuamente excluyentes.
-
-```bash
+python library_manager.py loan_copy 1 jdoe 14
 python library_manager.py list_loans --active
+```
+
+## Data model
+
+Four tables: `book`, `copy`, `library_user` and `loan`. A copy belongs to a book, and a loan links a copy to a user. An open loan has no `return_date`. See [`schema.sql`](schema.sql).
+
+## Tests
+
+The tests use a fake database connection, so they run without MySQL:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+They run automatically on every push and pull request with GitHub Actions.
+
+## Project structure
+
+```
+library_manager.py   entry point: parse args, open the connection, dispatch
+parser.py            argparse subcommands and validation
+dispatch.py          maps each command to its handler
+commands_book.py     book commands
+commands_copy.py     copy commands and status transitions
+commands_users.py    user commands
+commands_loan.py     loan commands
+connect.py           reads .env and opens the MySQL connection
+exceptions.py        LibraryManagerError for expected business-rule errors
+schema.sql           database schema
+tests/               pytest suite
 ```
